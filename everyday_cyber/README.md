@@ -1,6 +1,6 @@
 # everyday_cyber
 
-Everyday Cyber cross platform apps.
+Everyday Cyber cross-platform apps.
 
 ## Getting Started
 
