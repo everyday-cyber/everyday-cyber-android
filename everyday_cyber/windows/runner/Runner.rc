@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.org.everydaycyber.desktopapp" "\0"
+            VALUE "CompanyName", "org.everydaycyber.desktopapp" "\0"
             VALUE "FileDescription", "org.everydaycyber.desktopapp" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "org.everydaycyber.desktopapp" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.org.everydaycyber.desktopapp. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 org.everydaycyber.desktopapp. All rights reserved." "\0"
             VALUE "OriginalFilename", "org.everydaycyber.desktopapp.exe" "\0"
             VALUE "ProductName", "org.everydaycyber.desktopapp" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
