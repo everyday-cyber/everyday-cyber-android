@@ -1,0 +1,71 @@
+# File: .github/workflows/codeql-analysis.yml
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '43 7 * * 3'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.language == 'swift' && 'macos-latest' || 'ubuntu-latest' }}
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 1) Always run Dart pub‐get as a pre‐step (Dart is not actually scanned by CodeQL;
+          #    including it here ensures dependencies are in place for Android/iOS/macOS builds).
+          - language: none       # “none” just means “no compiled-language scan” (useful for pure Dart).
+          - language: java-kotlin # We will build this manually below.
+            build-mode: manual
+          - language: swift       # We will build this manually below.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Install Flutter CLI so that `flutter build` works on all runners.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0' 
+
+      # 3) Fetch Dart dependencies (needed before any Flutter build).
+      - name: Flutter pub get
+        run: flutter pub get
+
+      # 4) Initialize CodeQL. We pass in matrix.language and matrix.build-mode.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      # 5) If the build-mode is “manual”, build Android or macOS using Flutter.
+      - name: Build Android (Java/Kotlin)
+        if: matrix.language == 'java-kotlin'
+        run: |
+          cd android
+          ./gradlew assembleDebug
+        shell: bash
+
+      - name: Build macOS (Swift)
+        if: matrix.language == 'swift'
+        run: flutter build macos --release
+        shell: bash
+
+      # 6) Now perform the CodeQL analysis.
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
