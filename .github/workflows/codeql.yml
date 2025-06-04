@@ -12,7 +12,6 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    # Use macos-latest for Swift; otherwise default to Ubuntu
     runs-on: ${{ matrix.language == 'swift' && 'macos-latest' || 'ubuntu-latest' }}
     permissions:
       security-events: write
@@ -34,7 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) Install Flutter so that `flutter` is on PATH
+      # 2) Install Flutter so that `flutter` is on $PATH
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -42,29 +41,26 @@ jobs:
           flutter-version: '3.29.0'
 
       # 3) Always run `flutter pub get` inside the Flutter project directory
-      #    (this is outside the matrix so it happens once per job)
       - name: Flutter pub get
         working-directory: everyday_cyber
         run: flutter pub get
+        shell: bash
 
-      # 4) Initialize CodeQL for the current language (java-kotlin or swift)
+      # 4) Initialize CodeQL for the current language
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
-      # 5) If Java/Kotlin, build via Gradle inside everyday_cyber/android/
-      - name: Build Android (Java/Kotlin)
+      # 5) Build Android via Flutter (generates Java/Kotlin class files)
+      - name: Build Android via Flutter
         if: matrix.language == 'java-kotlin'
-        working-directory: everyday_cyber/android
-        run: |
-          # Ensure the Gradle wrapper is executable
-          chmod +x ./gradlew
-          ./gradlew assembleDebug
+        working-directory: everyday_cyber
+        run: flutter build apk --debug
         shell: bash
 
-      # 6) If Swift, build via Flutter inside everyday_cyber/
+      # 6) Build macOS (Swift) via Flutter
       - name: Build macOS (Swift)
         if: matrix.language == 'swift'
         working-directory: everyday_cyber
