@@ -12,6 +12,7 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    # Use macos-latest for Swift; otherwise default to Ubuntu
     runs-on: ${{ matrix.language == 'swift' && 'macos-latest' || 'ubuntu-latest' }}
     permissions:
       security-events: write
@@ -23,51 +24,54 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - language: none          # No compiled‐language scan
           - language: java-kotlin
             build-mode: manual
           - language: swift
             build-mode: manual
 
     steps:
+      # 1) Check out the code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Flutter CLI (so `flutter` is available)
+      # 2) Install Flutter so that `flutter` is on PATH
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: '3.29.0'
 
-      # 1) Run `flutter pub get` inside everyday_cyber/
+      # 3) Always run `flutter pub get` inside the Flutter project directory
+      #    (this is outside the matrix so it happens once per job)
       - name: Flutter pub get
         working-directory: everyday_cyber
         run: flutter pub get
-        shell: bash
 
-      # 2) Initialize CodeQL (Dart itself isn’t scanned, but building Android/macOS needs Dart deps)
+      # 4) Initialize CodeQL for the current language (java-kotlin or swift)
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
-      # 3) Build Android (Java/Kotlin) in everyday_cyber/android/
+      # 5) If Java/Kotlin, build via Gradle inside everyday_cyber/android/
       - name: Build Android (Java/Kotlin)
         if: matrix.language == 'java-kotlin'
         working-directory: everyday_cyber/android
-        run: ./gradlew assembleDebug
+        run: |
+          # Ensure the Gradle wrapper is executable
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
         shell: bash
 
-      # 4) Build macOS (Swift) in everyday_cyber/
+      # 6) If Swift, build via Flutter inside everyday_cyber/
       - name: Build macOS (Swift)
         if: matrix.language == 'swift'
         working-directory: everyday_cyber
         run: flutter build macos --release
         shell: bash
 
-      # 5) Perform CodeQL Analysis
+      # 7) Finally, run the CodeQL analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
