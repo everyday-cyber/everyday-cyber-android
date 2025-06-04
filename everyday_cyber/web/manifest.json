@@ -1,6 +1,6 @@
 {
-    "name": "everyday_cyber",
-    "short_name": "everyday_cyber",
+    "name": "org.everydaycyber.webapp",
+    "short_name": "org.everydaycyber.webapp",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
