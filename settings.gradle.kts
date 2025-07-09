@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Everyday Cyber"
 include(":app")
- 
